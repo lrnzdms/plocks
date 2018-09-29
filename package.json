@@ -4,9 +4,7 @@
   "scripts": {
     "start": "webpack-dev-server -w --config webpack.config.js --mode development",
     "build": "webpack --display-error-details --config webpack.config.js --mode production",
-    "httpserver": "http-server dist -p 3000 --cors",
-    "link_assets_admin": "node scripts/linkAssets.js c:\\workspaces\\mrn\\OpelCombo\\Assets",
-    "asd": "http-server ../mrn/OpelCombo -p 3000 --cors"
+    "httpserver": "http-server dist -p 3000 --cors"
   },
   "author": "lrnzdms",
   "license": "",
@@ -14,26 +12,15 @@
   "main": "index",
   "keywords": [],
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "babel-loader": "^8.0.0",
-    "css-loader": "^0.28.11",
-    "file-loader": "^1.1.11",
     "html-webpack-plugin": "^3.0.4",
     "http-server": "^0.11.1",
     "source-map-loader": "^0.2.3",
-    "style-loader": "^0.21.0",
     "ts-loader": "^4.4.2",
-    "typedoc": "^0.11.1",
     "typescript": "^2.9.2",
-    "url-loader": "^1.0.1",
     "webpack": "^4.20.2",
     "webpack-bundle-analyzer": "^2.13.1",
     "webpack-cli": "^3.1.1",
     "webpack-dev-server": "^3.1.9"
   },
-  "dependencies": {
-    "@babel/polyfill": "^7.0.0"
-  }
+  "dependencies": {}
 }

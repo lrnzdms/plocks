@@ -9,25 +9,15 @@
 
     <body>
 		<script type="text/javascript">
-
-			// HACK: 
-			// IE11 fix ... as long as the dev console is not open (F12)
-			// the console object does not exist ...
-			if(!window.console) {
-				var console = {
-					log : function(){},
-					warn : function(){},
-					error : function(){}
-				}
-			}
-
-
 			window.onload = function() {
+				plocks.initialize().then(div => {
+					document.getElementById("x").appendChild(div)
+				})
 			}
 		</script>
 
-        <div id="vc-3d-app" style="height: 90vh; width: 99vw"></div>
-		<div id="vc-3d-ui" style="position: fixed; top: 0; left: 0"></div>
+        <div id="x" style="height: 90vh; width: 99vw"></div>
+		<!-- <div id="vc-3d-ui" style="position: fixed; top: 0; left: 0"></div> -->
 
 	</body>
 

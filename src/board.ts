@@ -25,7 +25,6 @@ export class Board {
     constructor (p:BoardProperties) {        
         
         this.running = false
-        random.seed()        
         this.blocks = []
         this.colors = []
         this.colors_prob = {}
@@ -67,7 +66,7 @@ export class Board {
     }
         
     getRandomColorId = () => {
-        let rand = random.random();
+        let rand = Math.random();
         const id = Object.keys(this.colors_prob).find(id => rand < this.colors_prob[id])
         if (!id) throw new Error("Undefined color found");
         return id;

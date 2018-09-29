@@ -2,7 +2,7 @@ import { BoardProperties } from "./boardProperties";
 import { Board } from "./board";
 import { Block } from "./block";
 
-const colors:{id: string, marked:string, unmarked:string}[] = [
+const COLORS:{id: string, marked:string, unmarked:string}[] = [
     {marked: "#FF3333", unmarked: "#CC0000", id: "red"}, //red
     {marked: "#3B9DFF", unmarked: "#0069D1", id: "blue"}, //blue 
     {marked: "#82FF21", unmarked: "#5DD600", id: "green"}, //green
@@ -18,7 +18,7 @@ let SCREEN_WIDTH = 500;
 let SCREEN_HEIGHT = 100;
 let BLOCK_SIZE = 1;
 let CTX:CanvasRenderingContext2D;
-export const initialize = (callback:()=>void) => {
+export const initialize = ():Promise<HTMLDivElement> => {
     
     let p = new BoardProperties(FRAMES)
     
@@ -27,10 +27,15 @@ export const initialize = (callback:()=>void) => {
     
     let board = new Board(p)
 
-    const canvas = new HTMLCanvasElement();
+    const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     if (!context) throw new Error("eerroorr");
     CTX = context;
+
+    const div = document.createElement("div");
+    div.appendChild(canvas);
+    
+    return Promise.resolve(div);
 }
 
 const paint = (blocks:(Block|undefined)[]) => {
@@ -47,7 +52,7 @@ const paint = (blocks:(Block|undefined)[]) => {
 }
 
 const paintBlock = (b:Block) => {
-    const color = colors.find(c => c.id == b.color);
+    const color = COLORS.find(c => c.id == b.color);
     if (!color) throw new Error("Could not find color");
     let marked = color.marked;
     let unmarked = color.unmarked;
