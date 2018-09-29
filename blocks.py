@@ -73,9 +73,9 @@ class Board():
         self.block_height = p.block_height
         self.block_count = self.block_height * self.block_width
         self.block_width_min = p.block_width_min
-        self.center_x = self.block_width / 2
-        self.block_width_min_start = self.center_x - self.block_width_min/2
-        self.block_width_min_end = self.center_x + self.block_width_min/2        
+        self.center_x = int(self.block_width / 2)
+        self.block_width_min_start = int(self.center_x - self.block_width_min/2)
+        self.block_width_min_end = int(self.center_x + self.block_width_min/2)
         self.gravity = p.gravity
         self.row_time = p.row_time
         self.row_timer = self.row_time        
@@ -101,7 +101,7 @@ class Board():
         for c in self.colors:
             if c["id"] is id:
                 return c["prob"]
-        print "Could not find prob for given id!"
+        print("Could not find prob for given id!")
         
     def getRandomColorId(self):
         rand = random.random()
@@ -110,7 +110,7 @@ class Board():
                 return id
                 
     def getBlockId(self, y, x):
-        return x * self.block_height + y
+        return int(x * self.block_height + y)
         
     def getBlock(self, y, x):
         return self.blocks[self.getBlockId(y, x)]
@@ -144,9 +144,9 @@ class Board():
         
     def end(self, won):
         #if won:
-        #    print "WON"
+        #    print("WON")
         #else:
-        #    print "FAIL"
+        #    print("FAIL")
         self.running = False
         self.won = won
         
@@ -161,7 +161,7 @@ class Board():
                 b.marked = False
                 
         click = mouse[0]
-        target = self.getBlock(mouse[1], mouse[2])
+        target = self.getBlock(mouse[1], mouse[2])        
         count = 0
         if target is not 0:
             count = self.markBlocks(target)
@@ -258,7 +258,7 @@ class Board():
                 self.row_timer = self.row_time
                 if filled_cols <= self.block_width_min:
                     self.row_timer *= 0.5
-                    #print "SPEED"
+                    #print ("SPEED")
         
         # apply gravity
         for b in self.blocks:
@@ -309,10 +309,10 @@ class Blocks():
             if event.type is pygame.MOUSEMOTION:
                 self.mouse[1] = self.screen_height - event.pos[1]
                 self.mouse[1] /= self.block_size
-                self.mouse[1] = max( 0, min(self.block_height - 1, self.mouse[1]) )
+                self.mouse[1] = int(max( 0, min(self.block_height - 1, self.mouse[1]) ))
                 self.mouse[2] = event.pos[0]
                 self.mouse[2] /= self.block_size
-                self.mouse[2] = max( 0, min(self.block_width - 1, self.mouse[2]) )            
+                self.mouse[2] = int(max( 0, min(self.block_width - 1, self.mouse[2]) ))
             if event.type == pygame.QUIT:
                 self.exit()
     
@@ -341,7 +341,7 @@ class Blocks():
         pygame.display.flip()
         
     def loadStats(self):
-        f = open('blocks.sav', 'r')
+        f = open('plocks/blocks.sav', 'r')
         self.stats = json.loads(f.read())        
         f.close()
         
@@ -355,7 +355,7 @@ class Blocks():
         count = len(self.stats)
         w = 0
         l = 0
-        min = sys.maxint
+        min = float("inf")
         sum = 0
         
         for s in self.stats:
@@ -366,10 +366,10 @@ class Blocks():
             sum += s[1]
             if (s[1] < min):
                 min = s[1]
-        print "Total: " + str(count) + " (w: " + str(w) + ", l: " + str(l) + ")"
-        print "Win:   " + str(100.0 * w / count) + "%"
-        print "Min:   " + str(min)
-        print "Mid:   " + str(sum / float(count))
+        print("Total: " + str(count) + " (w: " + str(w) + ", l: " + str(l) + ")")
+        print("Win:   " + str(100.0 * w / count) + "%")
+        print("Min:   " + str(min))
+        print("Mid:   " + str(sum / float(count)))
             
     def exit(self):
         self.running = False
@@ -390,8 +390,8 @@ class Blocks():
         p = BoardProperties(self.frames)
         self.block_width = p.block_width
         self.block_height = p.block_height
-        self.block_size = self.screen_width / self.block_width
-        self.screen_height = self.block_size * self.block_height
+        self.block_size = int(self.screen_width / self.block_width)
+        self.screen_height = int(self.block_size * self.block_height)
         
         self.initPygame()
         self.board = Board(p)

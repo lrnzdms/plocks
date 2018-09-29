@@ -1,0 +1,11 @@
+# node specific ignores
+logs
+*.log
+npm-debug.log*
+dist
+node_modules
+
+# vs specific
+tools/**/bin/
+tools/**/obj/
+tools/**/.vs
