@@ -1,20 +1,16 @@
-import { Block } from "./block";
-import { BoardProperties } from "./boardProperties";
+import { IBlock } from "./iBlock";
+import { IBoardProperties } from "./iBoardProperties";
+import { IBoard } from "./iBoard";
 
-export class Board {
-
-    block_width:number;
-    block_height:number;
+export class Board implements IBoard {
+    props:IBoardProperties;
     block_count:number;
     block_width_min:number;    
     block_width_min_start:number;
     block_width_min_end:number;
-    gravity:number;
     center_x:number;
-    row_time:number;
     row_timer:number;
-    mark_threshold:number;
-    blocks:(Block|undefined)[];
+    blocks:(IBlock|undefined)[];
     colors:any[] = []
     colors_prob:any = {}
     running:boolean = false
@@ -22,23 +18,18 @@ export class Board {
     killed_blocks = 0
     won:boolean = false
     
-    constructor (p:BoardProperties) {        
-        
+    initialize = (p:IBoardProperties) => {
+        this.props = p;
         this.running = false
         this.blocks = []
         this.colors = []
         this.colors_prob = {}
-        this.block_width = p.block_width
-        this.block_height = p.block_height
-        this.block_count = this.block_height * this.block_width
+        this.block_count = p.block_height * p.block_width
         this.block_width_min = p.block_width_min
-        this.center_x = this.block_width / 2
+        this.center_x = p.block_width / 2
         this.block_width_min_start = this.center_x - this.block_width_min/2
         this.block_width_min_end = this.center_x + this.block_width_min/2
-        this.gravity = p.gravity
-        this.row_time = p.row_time
-        this.row_timer = this.row_time        
-        this.mark_threshold = p.mark_threshold
+        this.row_timer = p.row_time
         this.colors = p.colors
                 
         let prob = 0.0
@@ -47,12 +38,19 @@ export class Board {
             this.colors_prob[ c["id"] ] = prob
         })
             
-        for (let x = 0; x < this.block_width; ++x)
-            for (let y = 0; y < this.block_height; ++y)
+        for (let x = 0; x < p.block_width; ++x)
+            for (let y = 0; y < p.block_height; ++y)
                 if (y < 10) // todo no magic number
                     this.blocks.push(undefined)
                 else
-                    this.blocks.push(new Block(y, x, this.getRandomColorId()))
+                    this.blocks.push({
+                        x: x,
+                        y: y,
+                        x_act: x,
+                        y_act: y,
+                        color: this.getRandomColorId(),
+                        marked: false
+                    })
                     
         this.running = true
         this.started = false
@@ -72,26 +70,26 @@ export class Board {
         return id;
     }
                 
-    getBlockId = (y:number, x:number) => (x * this.block_height) + y;
+    getBlockId = (y:number, x:number) => (x * this.props.block_height) + y;
         
     getBlock = (y:number, x:number) => this.blocks[this.getBlockId(y, x)];
         
-    setBlock = (y:number, x:number, b:Block|undefined) => this.blocks[this.getBlockId(y, x)] = b;
+    setBlock = (y:number, x:number, b:IBlock|undefined) => this.blocks[this.getBlockId(y, x)] = b;
         
-    markBlocks = (b:Block) => {
+    markBlocks = (b:IBlock) => {
         b.marked = true
         let count = 1
         let neighbours = []
         if (b.y - 1 >= 0)
             neighbours.push( this.getBlock(b.y - 1, b.x) )
-        if (b.y + 1 < this.block_height)
+        if (b.y + 1 < this.props.block_height)
             neighbours.push( this.getBlock(b.y + 1, b.x) )
         if (b.x - 1 >= 0)
             neighbours.push( this.getBlock(b.y, b.x - 1) )
-        if (b.x + 1 < this.block_width)
+        if (b.x + 1 < this.props.block_width)
             neighbours.push( this.getBlock(b.y, b.x + 1) )
         
-        const marked = neighbours.filter(n => n && n.color == b.color && !n.marked).map(m => m as Block);
+        const marked = neighbours.filter(n => n && n.color == b.color && !n.marked).map(m => m as IBlock);
         const counts = marked.map(this.markBlocks);
         counts.forEach(c => count += c);
         return count;
@@ -99,7 +97,7 @@ export class Board {
         
     isFreeCol = (x:number) => {
         
-        for (let y = 0; y < this.block_height; ++y) {
+        for (let y = 0; y < this.props.block_height; ++y) {
             let f = this.getBlock(y, x);
             if (f) return false;
         }
@@ -119,20 +117,18 @@ export class Board {
     getData = () => [Date.now(), this.killed_blocks, this.won]
         
     update = (delta:number, mouse:any) => {
-
         //reset
         const existing_colors:any = {}
         this.blocks.forEach(b => {
             if (b) b.marked = false;
         })
                 
-        const click = mouse[0]
-        const target = this.getBlock(mouse[1], mouse[2])        
+        const click = mouse.click;
+        const target = this.getBlock(mouse.y, mouse.x)
         const count = target ? this.markBlocks(target) : 0;
         
-        let mark = count >= this.mark_threshold;
+        let mark = count >= this.props.mark_threshold;
         let kill = click && mark;
-        
         if (click && !this.started) {
             this.started = true
             this.killed_blocks = 0
@@ -166,10 +162,10 @@ export class Board {
         })
                 
         // move to center from right
-        for (let x = this.center_x; x < this.block_width; ++x) {
+        for (let x = this.center_x; x < this.props.block_width; ++x) {
             if (this.isFreeCol(x)) {
-                for (let xx = x+1; xx < this.block_width; ++xx) {
-                    for (let yy = 0; yy < this.block_height; ++yy) {
+                for (let xx = x+1; xx < this.props.block_width; ++xx) {
+                    for (let yy = 0; yy < this.props.block_height; ++yy) {
                         let b = this.getBlock(yy, xx)
                         if (b) b.x -= 1
                         this.setBlock(yy, xx-1, b)
@@ -183,7 +179,7 @@ export class Board {
         for (let x = this.center_x-1; x >= 0; --x) {
             if (this.isFreeCol(x)) {
                 for (let xx = x-1; xx >= 0; --xx) {
-                    for (let yy = 0; yy < this.block_height; ++yy) {
+                    for (let yy = 0; yy < this.props.block_height; ++yy) {
                         let b = this.getBlock(yy, xx)
                         if (b) b.x += 1
                         this.setBlock(yy, xx+1, b)
@@ -207,7 +203,7 @@ export class Board {
                 // update color tables
                 if (Object.keys(existing_colors).length != this.colors.length) {
 
-                    this.colors_prob.clear()
+                    this.colors_prob = {};
                     let new_total = 0.0
                     Object.keys(existing_colors).forEach(id => new_total += this.getColorProbById(id))
                     let prob = 0.0
@@ -218,13 +214,13 @@ export class Board {
                 }
 
                 // move all blocks up by one
-                for (let y = this.block_height-1; y >= 0; --y) {
-                    for (let x = 0; x < this.block_width; ++x) {
+                for (let y = this.props.block_height-1; y >= 0; --y) {
+                    for (let x = 0; x < this.props.block_width; ++x) {
                         let b = this.getBlock(y, x)
                         if (b) {
                             b.y += 1
                             // check fail state
-                            if (y+1 >= this.block_height) {
+                            if (y+1 >= this.props.block_height) {
                                 this.end(false)
                                 return
                             }
@@ -236,16 +232,23 @@ export class Board {
 
                 // create new block row
                 let filled_cols = 0
-                for (let x = 0; x < this.block_width; ++x) {
-                    if (!this.isFreeCol(x) || x > this.block_width_min_start || x < this.block_width_min_end) {
-                        let n = new Block(0, x, this.getRandomColorId())
+                for (let x = 0; x < this.props.block_width; ++x) {
+                    if (!this.isFreeCol(x) || (x > this.block_width_min_start && x < this.block_width_min_end)) {
+                        let n = {
+                            x: x,
+                            y: 0,
+                            x_act: x,
+                            y_act: 0.0,
+                            color: this.getRandomColorId(),
+                            marked: false
+                        }
                         n.y_act = -0.9
                         this.setBlock(0, x, n)
                         filled_cols += 1
                     }
                 }
                     
-                this.row_timer = this.row_time
+                this.row_timer = this.props.row_time
                 if (filled_cols <= this.block_width_min) {
                     this.row_timer *= 0.5
                     //print ("SPEED")
@@ -254,23 +257,23 @@ export class Board {
         }
         
         // apply gravity
-        this.blocks.filter(b => b != undefined).map(b => b as Block).forEach(b => {
+        this.blocks.filter(b => b != undefined).map(b => b as IBlock).forEach(b => {
             if (b.y_act < b.y) {
-                b.y_act += this.gravity / 5.0
+                b.y_act += this.props.gravity / 5.0
                 b.y_act = Math.min(b.y, b.y_act)
             } else if (b.y_act > b.y) {
                 let mod = Math.ceil(b.y_act - b.y)
-                b.y_act -= this.gravity * mod
+                b.y_act -= this.props.gravity * mod
                 b.y_act = Math.max(b.y, b.y_act)
             }
 
             if (b.x < this.center_x) {
                 let mod = Math.ceil(b.x - b.x_act)
-                b.x_act += this.gravity * mod
+                b.x_act += this.props.gravity * mod
                 b.x_act = Math.min(b.x, b.x_act)
             } else if (b.x >= this.center_x) {
                 let mod = Math.ceil(b.x_act - b.x)
-                b.x_act -= this.gravity * mod
+                b.x_act -= this.props.gravity * mod
                 b.x_act = Math.max(b.x, b.x_act)
             }
         })

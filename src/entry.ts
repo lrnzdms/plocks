@@ -1,6 +1,8 @@
-import { BoardProperties } from "./boardProperties";
+import { IBoardProperties } from "./iBoardProperties";
+import { IBoard } from "./iBoard";
+import { IBoardInput } from "./iBoardInput";
 import { Board } from "./board";
-import { Block } from "./block";
+import { IBlock } from "./iblock";
 
 const COLORS:{id: string, marked:string, unmarked:string}[] = [
     {marked: "#FF3333", unmarked: "#CC0000", id: "red"}, //red
@@ -13,36 +15,70 @@ const COLORS:{id: string, marked:string, unmarked:string}[] = [
     {marked: "#FF4AEA", unmarked: "#E300C8", id: "pink"} //pink 
 ]
 
-const FRAMES = 100;
-let SCREEN_WIDTH = 500;
-let SCREEN_HEIGHT = 100;
-let BLOCK_SIZE = 1;
+const BOARD_PROPS:IBoardProperties = {
+    block_width: 20,
+    block_height: 20,
+    block_width_min: 7,
+    row_time: 3000,
+    mark_threshold: 3,
+    speed_per_sec: 20.0,
+    gravity: 20.0 / 100,
+    colors: [
+        {id: COLORS[0].id, prob: 0.40},
+        {id: COLORS[1].id, prob: 0.40},        
+        {id: COLORS[2].id, prob: 0.16},
+        {id: COLORS[3].id, prob: 0.03},
+        {id: COLORS[4].id, prob: 0.01}
+    ]
+}
+
+const SCREEN_WIDTH = 500;
+const BLOCK_SIZE = SCREEN_WIDTH / BOARD_PROPS.block_width;
+const SCREEN_HEIGHT = BLOCK_SIZE * BOARD_PROPS.block_height;
+
+let FRAME_ID:number;
 let CTX:CanvasRenderingContext2D;
+let BOARD:IBoard;
+let INPUT:IBoardInput = {click: false, x: 0, y: 0}
+
 export const initialize = ():Promise<HTMLDivElement> => {
     
-    let p = new BoardProperties(FRAMES)
-    
-    BLOCK_SIZE = SCREEN_WIDTH / p.block_width;
-    SCREEN_HEIGHT = BLOCK_SIZE * p.block_height;
-    
-    let board = new Board(p)
+    BOARD = new Board();
+    BOARD.initialize(BOARD_PROPS);
 
     const canvas = document.createElement("canvas");
+    canvas.width = SCREEN_WIDTH;
+    canvas.height = SCREEN_HEIGHT;
+
     const context = canvas.getContext("2d");
     if (!context) throw new Error("eerroorr");
     CTX = context;
 
     const div = document.createElement("div");
     div.appendChild(canvas);
+    div.addEventListener( 'mousedown', mouseDown );
+    div.addEventListener( 'mousemove', mouseMove );
+
+    requestAnimationFrame(animate);
     
     return Promise.resolve(div);
 }
 
-const paint = (blocks:(Block|undefined)[]) => {
+let LAST_UPDATE = 0;
+const animate = (time:number) => {
+    const delta = time - LAST_UPDATE;
+    LAST_UPDATE = time;
+    BOARD.update(delta, INPUT)
+    paint(BOARD.blocks);
+    FRAME_ID = requestAnimationFrame(animate);
+    INPUT.click = false;
+}
 
-        // this.screen.fill(pygame.Color("black"))
+const paint = (blocks:(IBlock|undefined)[]) => {
 
-
+        CTX.fillStyle = "black"
+        CTX.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+        
         blocks.forEach(b => b && paintBlock(b));
 
         // // render text
@@ -51,21 +87,33 @@ const paint = (blocks:(Block|undefined)[]) => {
         // pygame.display.flip()
 }
 
-const paintBlock = (b:Block) => {
+const paintBlock = (b:IBlock) => {
     const color = COLORS.find(c => c.id == b.color);
     if (!color) throw new Error("Could not find color");
     let marked = color.marked;
     let unmarked = color.unmarked;
 
     let x = b.x_act * BLOCK_SIZE;
-    let y = SCREEN_HEIGHT - (b.y_act + 1) * BLOCK_SIZE;
+    let y = SCREEN_HEIGHT - ((b.y_act + 1) * BLOCK_SIZE);
     
-    // DEPENDING ON MARKED SWITCH IF COLOR IS USED AS OUTLINE
-    // if (b.marked)
-    //     unmarked, marked = marked, unmarked
-
-    CTX.fillStyle = unmarked;
+    CTX.fillStyle = b.marked ? unmarked : unmarked;
     CTX.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE)
-    CTX.fillStyle = marked;
+    CTX.fillStyle = b.marked ? unmarked : marked;
     CTX.fillRect(x+2, y+2, BLOCK_SIZE-4, BLOCK_SIZE-4)
 }
+
+const mouseDown = (event:MouseEvent) => {
+    INPUT.click = true;
+}
+
+const mouseMove = (event:MouseEvent) => {
+    INPUT.y = SCREEN_HEIGHT - event.y;
+    INPUT.y /= BLOCK_SIZE    
+    INPUT.y = intInRange(0, INPUT.y, BOARD_PROPS.block_height - 1);
+
+    INPUT.x = event.x;
+    INPUT.x /= BLOCK_SIZE
+    INPUT.x = intInRange(0, INPUT.x, BOARD_PROPS.block_width - 1);
+}
+
+const intInRange = (min:number, x:number, max:number) => Math.floor(Math.max( min, Math.min(max, x) ));
