@@ -1,8 +1,5 @@
-import { IBoardProperties } from "./iBoardProperties";
-import { IBoard } from "./iBoard";
-import { IBoardInput } from "./iBoardInput";
+import { IBoard, IBoardProperties, IBoardInput, IBlock } from "./interfaces";
 import { Board } from "./board";
-import { IBlock } from "./iblock";
 
 const COLORS:{id: string, marked:string, unmarked:string}[] = [
     {marked: "#FF3333", unmarked: "#CC0000", id: "red"}, //red
@@ -40,12 +37,10 @@ let FRAME_ID:number;
 let CTX:CanvasRenderingContext2D;
 let BOARD:IBoard;
 let INPUT:IBoardInput = {click: false, x: 0, y: 0}
+let LAST_UPDATE = 0;
 
 export const initialize = ():Promise<HTMLDivElement> => {
     
-    BOARD = new Board();
-    BOARD.initialize(BOARD_PROPS);
-
     const canvas = document.createElement("canvas");
     canvas.width = SCREEN_WIDTH;
     canvas.height = SCREEN_HEIGHT;
@@ -59,12 +54,14 @@ export const initialize = ():Promise<HTMLDivElement> => {
     div.addEventListener( 'mousedown', mouseDown );
     div.addEventListener( 'mousemove', mouseMove );
 
+    BOARD = new Board();
+    BOARD.initialize(BOARD_PROPS);
+
     requestAnimationFrame(animate);
     
     return Promise.resolve(div);
 }
 
-let LAST_UPDATE = 0;
 const animate = (time:number) => {
     const delta = time - LAST_UPDATE;
     LAST_UPDATE = time;
@@ -81,6 +78,8 @@ const paint = (blocks:(IBlock|undefined)[]) => {
         
         blocks.forEach(b => b && paintBlock(b));
 
+        CTX.fillStyle = "white"
+        CTX.fillText("" + BOARD.killed_blocks, 50, 50)
         // // render text
         // label = this.font.render(str(this.board.killed_blocks), 1, (255,255,0))
         // this.screen.blit(label, (100, 100))

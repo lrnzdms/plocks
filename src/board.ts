@@ -1,6 +1,4 @@
-import { IBlock } from "./iBlock";
-import { IBoardProperties } from "./iBoardProperties";
-import { IBoard } from "./iBoard";
+import { IBoard, IBoardProperties, IBlock } from "./interfaces";
 
 export class Board implements IBoard {
     props:IBoardProperties;
@@ -43,19 +41,12 @@ export class Board implements IBoard {
                 if (y < 10) // todo no magic number
                     this.blocks.push(undefined)
                 else
-                    this.blocks.push({
-                        x: x,
-                        y: y,
-                        x_act: x,
-                        y_act: y,
-                        color: this.getRandomColorId(),
-                        marked: false
-                    })
+                    this.blocks.push(this.createBlock(x, y))
                     
         this.running = true
         this.started = false
     }
-        
+    
     getColorProbById = (id:any) => {
         const c = this.colors.find(c => c["id"] == id);
         if (!c)
@@ -234,14 +225,7 @@ export class Board implements IBoard {
                 let filled_cols = 0
                 for (let x = 0; x < this.props.block_width; ++x) {
                     if (!this.isFreeCol(x) || (x > this.block_width_min_start && x < this.block_width_min_end)) {
-                        let n = {
-                            x: x,
-                            y: 0,
-                            x_act: x,
-                            y_act: 0.0,
-                            color: this.getRandomColorId(),
-                            marked: false
-                        }
+                        let n = this.createBlock(x, 0);
                         n.y_act = -0.9
                         this.setBlock(0, x, n)
                         filled_cols += 1
@@ -277,5 +261,16 @@ export class Board implements IBoard {
                 b.x_act = Math.max(b.x, b.x_act)
             }
         })
+    }
+
+    createBlock = (x:number, y:number):IBlock => {
+        return {
+            x: x,
+            y: y,
+            x_act: x,
+            y_act: y,
+            color: this.getRandomColorId(),
+            marked: false
+        }
     }
 }
