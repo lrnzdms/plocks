@@ -265,6 +265,7 @@ export class Board implements IBoard {
 
     createBlock = (x:number, y:number):IBlock => {
         return {
+            id: ID_COUNTER++,
             x: x,
             y: y,
             x_act: x,
@@ -274,3 +275,5 @@ export class Board implements IBoard {
         }
     }
 }
+
+let ID_COUNTER = 0;

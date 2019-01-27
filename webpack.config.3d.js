@@ -3,7 +3,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const getConfig = () => { return {
-	entry: path.resolve(__dirname, "src", "entry_2d.ts"),
+	entry: path.resolve(__dirname, "src", "entry_3d.ts"),
 	output: {
 		path: path.resolve(__dirname, "dist"),
 		filename: "plocks.js",
@@ -15,7 +15,11 @@ const getConfig = () => { return {
 	},
 	devServer: {
 		contentBase: path.resolve(__dirname, "dist"),
-		port: 3000
+		port: 3000,
+		proxy: {
+			"/login": {target: "http://vc-studio-dev.herokuapp.com", secure: false, changeOrigin: true},
+			"/asset/*": {target: "http://vc-studio-dev.herokuapp.com", secure: false, changeOrigin: true}
+		}
 	},
 	devtool: 'source-map',	
 	module: {

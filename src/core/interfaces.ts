@@ -7,6 +7,7 @@ export interface IBoard {
 }
 
 export interface IBlock {
+    id:number,
     x:number,
     y:number,
     x_act:number,

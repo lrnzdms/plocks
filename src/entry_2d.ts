@@ -1,5 +1,5 @@
-import { IBoard, IBoardProperties, IBoardInput, IBlock } from "./interfaces";
-import { Board } from "./board";
+import { IBoard, IBoardProperties, IBoardInput, IBlock } from "./core/interfaces";
+import { Board } from "./core/board";
 
 const COLORS:{id: string, marked:string, unmarked:string}[] = [
     {marked: "#FF3333", unmarked: "#CC0000", id: "red"}, //red

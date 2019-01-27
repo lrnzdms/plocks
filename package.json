@@ -2,8 +2,8 @@
   "version": "0.0.1",
   "description": "n/a",
   "scripts": {
-    "start": "webpack-dev-server -w --config webpack.config.js --mode development",
-    "build": "webpack --display-error-details --config webpack.config.js --mode production",
+    "start": "webpack-dev-server -w --config webpack.config.3d.js --mode development",
+    "build": "webpack --display-error-details --config webpack.config.3d.js --mode production",
     "httpserver": "http-server dist -p 3000 --cors"
   },
   "author": "lrnzdms",
@@ -12,6 +12,7 @@
   "main": "index",
   "keywords": [],
   "devDependencies": {
+    "axios": "^0.18.0",
     "html-webpack-plugin": "^3.0.4",
     "http-server": "^0.11.1",
     "source-map-loader": "^0.2.3",
@@ -22,5 +23,7 @@
     "webpack-cli": "^3.1.1",
     "webpack-dev-server": "^3.1.9"
   },
-  "dependencies": {}
+  "dependencies": {
+    "threngine": "https://github.com/VisCircleCorp/threngine.git"
+  }
 }
