@@ -42,7 +42,7 @@ login()
 
     UI && UI.appendChild(BUTTONS);
     const plocks = new BoardWrapper(SERVICES);
-    const scene = SERVICES.scene.createScene("Assets/fabric.gltf")    
+    const scene = SERVICES.scene.createScene("fabric_1.gltf")    
     scene.lights = [];
     SERVICES.scene.loadScene(scene)
     .then(ASSETS.getMaterials)
@@ -81,6 +81,8 @@ const SCALE = .2;
 class BoardWrapper {
     private _board:IBoard;
     private _scene:Scene;
+_garbage:Scene;
+
     private _input:IBoardInput = {click: false, x: 0, y: 0};
     constructor (
         private _threngine:Services
@@ -105,8 +107,10 @@ class BoardWrapper {
             ]
         }
 
-        this._scene = new Scene();        
+        this._scene = new Scene();
+        this._garbage = new Scene();
         this._threngine.render.scene.add(this._scene);
+        this._threngine.render.scene.add(this._garbage);
         this._threngine.render.scene.background = new Color(0,0,0);
 
         this._board = new Board();
@@ -144,17 +148,36 @@ console.log(this._board.killed_blocks);
     private _paint = () => {
         // if in scene but not in blocks -> remove from scene
         const invalids:Object3D[] = [];
-        this._scene.traverse(obj => {
-            if (!this._getBoardBlock(obj)) {
+        this._scene.children.forEach(obj => {
+            if ((obj as Mesh != undefined) && !this._getBoardBlock(obj)) {
                 invalids.push(obj);
             }
         });        
-        invalids.forEach(o => this._scene.remove(o));
+
+        this._collectGarbageBlocks(invalids);
+        
 
         // Update position or create new
         this._board.blocks.forEach(b => {
             if (b) this._paintBlock(b);
         })
+    }
+    private _collectGarbageBlocks = (garbage:Object3D[]) => {
+        garbage.forEach(o => {
+            this._scene.remove(o)
+            this._garbage.add(o);              
+        });
+
+        const dead:Mesh[] = []
+        this._garbage.children.forEach(o => {
+            const mesh = o as Mesh;
+            if (mesh) {
+                mesh.scale.multiplyScalar(.9);
+                if (mesh.scale.x < 0.1)
+                    dead.push(mesh);
+            }
+        })
+        dead.forEach(m => this._garbage.remove(m));
     }
 
     private _getMeshBlock = (b:IBlock):Mesh|undefined => {
