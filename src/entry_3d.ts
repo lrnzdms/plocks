@@ -50,20 +50,20 @@ login()
 
         const count = 5;
         const indices = [];
-        const d = count - materials.length;
-        if (d > 0) {
-            console.warn("NOT ENOUGH MATERIALS FOUND. "+d+" Materials are missing and are being supstituted.");
-            for (let i=0; i<d;++i) {
-                indices.push(0);
-            }
+        
+        let sorted = materials.map((m, i) => i);
+        while (sorted.length > 0) {
+            const randI = Math.floor(Math.random()*sorted.length);
+            const randE = sorted[randI];
+            indices.push(randE);
+            sorted = sorted.filter(e => e!==randE);
+        }
+        
+        while (indices.length < count) {
+            console.warn("NOT ENOUGH MATERIALS FOUND. "+(count-indices.length)+" Materials are missing and are being substituted.");
+            indices.push(0);
         }
 
-        while (indices.length < count) {
-            const randI = Math.floor(Math.random()*materials.length)
-            if (indices.indexOf(randI)===-1) {
-                indices.push(randI);
-            }
-        }
         console.log(indices)
         MATERIALS = indices.map(i => materials[i].id)
 

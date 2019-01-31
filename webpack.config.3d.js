@@ -14,7 +14,7 @@ const getConfig = () => { return {
 		extensions: ['.js', '.ts', '.tsx', ".json", ".css"]
 	},
 	devServer: {
-		contentBase: path.resolve(__dirname, "dist"),
+		contentBase: [path.resolve(__dirname, "dist"), path.resolve(__dirname, "..", "youbag", "Assets", "Materials")],
 		port: 3000,
 		proxy: {
 			"/login": {target: "http://vc-studio-dev.herokuapp.com", secure: false, changeOrigin: true},
